@@ -1,4 +1,4 @@
-# React practice project
+# Django REST framework practice project
 
 ## Credits
 
