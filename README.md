@@ -3,3 +3,8 @@
 ## Credits
 
 Repository content is created by following tutorial bought on [Udemy](https://www.udemy.com/course/django-rest-framework) by Shubham Sarda.
+
+## Credentials
+
+Username: admin
+Password: Passw0rd1!
