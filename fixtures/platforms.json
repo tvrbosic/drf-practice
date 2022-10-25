@@ -1,0 +1,29 @@
+[
+  {
+    "model": "watchlist.streamplatform",
+    "pk": 1,
+    "fields": {
+      "name": "Platform 1",
+      "about": "Platform 1 Description",
+      "website": "http://www.platform1.com"
+    }
+  },
+  {
+    "model": "watchlist.streamplatform",
+    "pk": 2,
+    "fields": {
+      "name": "Platform 2",
+      "about": "Platform 2 Description",
+      "website": "http://www.platform2.com"
+    }
+  },
+  {
+    "model": "watchlist.streamplatform",
+    "pk": 3,
+    "fields": {
+      "name": "Platform 3",
+      "about": "Platform 3 Description",
+      "website": "http://www.platform3.com"
+    }
+  }
+]
