@@ -1,9 +1,11 @@
+# ----------------------------------- CLASS BASED VIEWS -----------------------------------
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 
-from .models import Movie
-from .serializers import MovieSerializer
+from .models import Movie, StreamPlatform
+from .serializers import MovieSerializer, StreamPlatformSerializer
+from watchlist import serializers
 
 
 def response_payload(successful, data=None, message=None, errors=None):
@@ -64,6 +66,53 @@ class MovieDetailsView(APIView):
 
         movie.delete()
         return Response(response_payload(successful=True, message='Movie successfully deleted!'))
+
+
+class StreamPlatformView(APIView):
+    def get(self, request):
+        platforms = StreamPlatform.objects.all()
+        serializer = StreamPlatformSerializer(platforms, many=True)
+        return Response(response_payload(successful=True, data=serializer.data))
+
+    def post(self, request):
+        serializer = StreamPlatformSerializer(data=request.data)
+        if serializer.is_valid():
+            return Response(response_payload(successful=True, data=serializer.data))
+        else:
+            return Response(response_payload(successful=False, errors=serializer.errors), status=status.HTTP_400_BAD_REQUEST)
+
+
+class StreamPlatformDetailsView(APIView):
+    def get(self, request, pk):
+        try:
+            platform = StreamPlatform.objects.get(pk=pk)
+        except StreamPlatform.DoesNotExist:
+            return Response(response_payload(successful=False, message='Platform with requested id was not found!'), status=status.HTTP_404_NOT_FOUND)
+
+        serializer = StreamPlatformSerializer(platform)
+        return Response(response_payload(successful=True, data=serializer.data))
+
+    def put(self, request, pk):
+        try:
+            platform = Movie.objects.get(pk=pk)
+        except Movie.DoesNotExist:
+            return Response(response_payload(successful=False, message='Platform with requested id was not found!'), status=status.HTTP_404_NOT_FOUND)
+
+        serializer = StreamPlatformSerializer(platform, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(response_payload(successful=True, data=serializer.data))
+        else:
+            return Response(serializer.errors)
+
+    def delete(self, request, pk):
+        try:
+            platform = StreamPlatform.objects.get(pk=pk)
+        except StreamPlatform.DoesNotExist:
+            return Response(response_payload(successful=False, message='Platform with requested id was not found!'), status=status.HTTP_404_NOT_FOUND)
+
+        platform.delete()
+        return Response(response_payload(successful=True, message='Platform successfully deleted!'))
 
 
 """

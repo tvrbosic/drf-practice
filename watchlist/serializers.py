@@ -1,10 +1,33 @@
 from rest_framework import serializers
 
-from .models import Movie
+from .models import Movie, StreamPlatform
 
+# ----------------------------------- Model Serializer -----------------------------------
+
+
+class MovieSerializer(serializers.ModelSerializer):
+    len_title = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Movie
+        # Include fields
+        fields = "__all__"
+        # Exclude fields
+        # exclude = ['name_of_excluded_field', ...]
+
+    def get_len_title(self, object):
+        return len(object.title)
+
+
+class StreamPlatformSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = StreamPlatform
+        fields = "__all__"
+
+
+"""
+# ----------------------------------- Generic Serializer -----------------------------------
 # Defined custom field level validator
-
-
 def name_length(value):
     if len(value) < 2:
         raise serializers.ValidationError("Name is too short!")
@@ -41,3 +64,4 @@ class MovieSerializer(serializers.Serializer):
                 'Name and Description should not be the same!')
         else:
             return data
+"""
