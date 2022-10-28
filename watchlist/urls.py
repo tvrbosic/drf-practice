@@ -1,11 +1,21 @@
 from django.urls import path
 
-from .views import MovieListView, MovieDetailsView, StreamPlatformView, StreamPlatformDetailsView
+from .views import (MoviesView, MovieDetailsView, ReviewsView,
+                    ReviewDetailsView, StreamPlatformsView, StreamPlatformDetailsView)
 
 urlpatterns = [
-    path('movie/', MovieListView.as_view(), name='movie-list'),
+    path('movies/', MoviesView.as_view(), name='movies'),
     path('movie/<int:pk>/', MovieDetailsView.as_view(), name='movie-details'),
-    path('platform/', StreamPlatformView.as_view(), name='platform-list'),
+
+    path('movie/<int:pk>/reviews/', ReviewsView.as_view(),
+         name='reviews'),  # <---------
+
+    path('platforms/', StreamPlatformsView.as_view(), name='platforms'),
     path('platform/<int:pk>/', StreamPlatformDetailsView.as_view(),
-         name='movie-details'),
+         name='platform-details'),
+
+    path('review/<int:pk>', ReviewDetailsView.as_view(), name='review-details'),
+    # path('reviews/>', ReviewsView.as_view(), name='reviews'),
+
+
 ]

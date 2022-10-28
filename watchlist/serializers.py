@@ -1,12 +1,20 @@
+from dataclasses import fields
 from rest_framework import serializers
 
-from .models import Movie, StreamPlatform
+from .models import Movie, StreamPlatform, Review
 
 # ----------------------------------- Model Serializer -----------------------------------
 
 
+class ReviewSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Review
+        fields = "__all__"
+
+
 class MovieSerializer(serializers.ModelSerializer):
     len_title = serializers.SerializerMethodField()
+    reviews = ReviewSerializer(many=True, read_only=True)
 
     class Meta:
         model = Movie
@@ -20,6 +28,16 @@ class MovieSerializer(serializers.ModelSerializer):
 
 
 class StreamPlatformSerializer(serializers.ModelSerializer):
+    # Relation as nested object
+    movies = MovieSerializer(many=True, read_only=True)
+    # Relation as string representation
+    # movies = serializers.StringRelatedField(many=True)
+    # Relation as object primary key
+    # movies = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
+    # Relation as object hyperlink
+    # movies = serializers.HyperlinkedRelatedField(
+    #    many=True, read_only=True, view_name='movie-details')
+
     class Meta:
         model = StreamPlatform
         fields = "__all__"

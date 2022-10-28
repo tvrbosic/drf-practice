@@ -1,11 +1,19 @@
-# ----------------------------------- CLASS BASED VIEWS -----------------------------------
+# ----------------------------------- Content -----------------------------------
+# FUNCTION BASED VIEWS
+# CLASS BASED VIEWS
+# - 1) APIView
+# - 2) GenericAPIView, modelMixins (List, Create, Update, Delete)
+# - 3) ConcreteAPIViews (ListCreate, RetrieveUpdate, RetrieveDestroy, RetrieveUpdateDestory)
+
+from rest_framework import status
+from rest_framework import generics
+from rest_framework import mixins
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework import status
 
-from .models import Movie, StreamPlatform
-from .serializers import MovieSerializer, StreamPlatformSerializer
-from watchlist import serializers
+from .models import Movie, Review, StreamPlatform
+from .serializers import (
+    MovieSerializer, ReviewSerializer, StreamPlatformSerializer)
 
 
 def response_payload(successful, data=None, message=None, errors=None):
@@ -20,7 +28,54 @@ def response_payload(successful, data=None, message=None, errors=None):
     return payload
 
 
-class MovieListView(APIView):
+class ReviewsView(generics.ListCreateAPIView):
+    # Overwritten
+    # queryset = Review.objects.all()
+    serializer_class = ReviewSerializer
+
+    def get_queryset(self):
+        # Fetch keyword argument pk from url
+        pk = self.kwargs['pk']
+        return Review.objects.filter(movie=pk)
+
+    def perform_create(self, serializer):
+        pk = self.kwargs.get('pk')
+        movie = Movie.objects.get(pk=pk)
+        serializer.save(movie=movie)
+
+
+class ReviewDetailsView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Review.objects.all()
+    serializer_class = ReviewSerializer
+
+# ----------------------------------- Generic API View & mixins -----------------------------------
+
+
+"""
+class ReviewsView(generics.GenericAPIView, mixins.ListModelMixin, mixins.CreateModelMixin):
+    queryset = Review.objects.all()
+    serializer_class = ReviewSerializer
+
+    def get(self, request, *args, **kwargs):
+        return self.list(request, *args, **kwargs)
+
+    def post(self, request, *args, **kwargs):
+        return self.create(request, *args, **kwargs)
+
+
+class ReviewDetailsView(generics.GenericAPIView, mixins.RetrieveModelMixin):
+    queryset = Review.objects.all()
+    serializer_class = ReviewSerializer
+
+    def get(self, request, *args, **kwargs):
+        return self.retrieve(request, *args, **kwargs)
+"""
+
+
+# ----------------------------------- API View -----------------------------------
+
+
+class MoviesView(APIView):
     def get(self, request):
         movies = Movie.objects.all()
         serializer = MovieSerializer(movies, many=True)
@@ -68,7 +123,7 @@ class MovieDetailsView(APIView):
         return Response(response_payload(successful=True, message='Movie successfully deleted!'))
 
 
-class StreamPlatformView(APIView):
+class StreamPlatformsView(APIView):
     def get(self, request):
         platforms = StreamPlatform.objects.all()
         serializer = StreamPlatformSerializer(platforms, many=True)
