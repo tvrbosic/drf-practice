@@ -14,9 +14,12 @@ from rest_framework import generics
 from rest_framework import viewsets
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from rest_framework.exceptions import ValidationError
+from rest_framework.permissions import IsAuthenticated
+
 from .models import Movie, Review, StreamPlatform
-from .serializers import (
-    MovieSerializer, ReviewSerializer, StreamPlatformSerializer)
+from .serializers import MovieSerializer, ReviewSerializer, StreamPlatformSerializer
+from .permissions import AdminOrReadOnly, ReviewUserOrReadOnly
 
 
 def response_payload(successful, data=None, message=None, errors=None):
@@ -71,6 +74,7 @@ class ReviewsView(generics.ListCreateAPIView):
     # Overwritten
     # queryset = Review.objects.all()
     serializer_class = ReviewSerializer
+    permission_classes = [AdminOrReadOnly]
 
     def get_queryset(self):
         # Fetch keyword argument pk from url
@@ -80,12 +84,20 @@ class ReviewsView(generics.ListCreateAPIView):
     def perform_create(self, serializer):
         pk = self.kwargs.get('pk')
         movie = Movie.objects.get(pk=pk)
-        serializer.save(movie=movie)
+
+        reviews_queryset = Review.objects.filter(movie=movie, reviewer=self.request.user)
+        if reviews_queryset.exists():
+            raise ValidationError('You have already reviewed this movie!')
+
+        serializer.save(movie=movie, reviewer=self.request.user)
 
 
 class ReviewDetailsView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Review.objects.all()
     serializer_class = ReviewSerializer
+    permission_classes = [ReviewUserOrReadOnly]
+
+
 # ------------------------------------------------------------------------------------------------
 # ----------------------------------- (2.2) Generic API View & mixins ----------------------------
 # ------------------------------------------------------------------------------------------------
