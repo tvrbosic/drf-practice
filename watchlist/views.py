@@ -1,16 +1,19 @@
-# ----------------------------------- Content -----------------------------------
-# FUNCTION BASED VIEWS
-# CLASS BASED VIEWS
-# - 1) APIView
-# - 2) GenericAPIView, modelMixins (List, Create, Update, Delete)
-# - 3) ConcreteAPIViews (ListCreate, RetrieveUpdate, RetrieveDestroy, RetrieveUpdateDestory)
+# ----------------------------------- Content ------------------------------------------------
+# 1) FUNCTION BASED VIEWS
+# 2) CLASS BASED VIEWS
+# - 2.1) APIView
+# - 2.2) GenericAPIView, modelMixins (List, Create, Update, Delete)
+# - 2.3) ConcreteAPIViews (ListCreate, RetrieveUpdate, RetrieveDestroy, RetrieveUpdateDestory)
+# - 2.4/ ViewSets
+# --------------------------------------------------------------------------------------------
 
+from django.shortcuts import get_object_or_404
 from rest_framework import status
 from rest_framework import generics
-from rest_framework import mixins
+# from rest_framework import mixins
+from rest_framework import viewsets
 from rest_framework.views import APIView
 from rest_framework.response import Response
-
 from .models import Movie, Review, StreamPlatform
 from .serializers import (
     MovieSerializer, ReviewSerializer, StreamPlatformSerializer)
@@ -26,6 +29,42 @@ def response_payload(successful, data=None, message=None, errors=None):
     if errors is not None:
         payload['errors'] = errors
     return payload
+
+
+# ------------------------------------------------------------------------------------------------
+# ---------------------------------------- (2.4) ViewSets ----------------------------------------
+# ------------------------------------------------------------------------------------------------
+"""
+class StreamPlatformVS(viewsets.ViewSet):
+    def list(self, request):
+        queryset = StreamPlatform.objects.all()
+        serializer = StreamPlatformSerializer(queryset, many=True)
+        return Response(serializer.data)
+
+    def retrieve(self, request, pk=None):
+        queryset = StreamPlatform.objects.all()
+        platform = get_object_or_404(queryset, pk=pk)
+        serializer = StreamPlatformSerializer(platform)
+        return Response(serializer.data)
+
+    def create(self, request):
+        serializer = StreamPlatformSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        else:
+            return Response(serializer.errors)
+"""
+
+
+# class StreamPlatformVS(viewsets.ReadOnlyModelViewSet):
+class StreamPlatformVS(viewsets.ModelViewSet):
+    queryset = StreamPlatform.objects.all()
+    serializer_class = StreamPlatformSerializer
+
+# ------------------------------------------------------------------------------------------------
+# ----------------------------------- (2.3) Concrete API Views -----------------------------------
+# ------------------------------------------------------------------------------------------------
 
 
 class ReviewsView(generics.ListCreateAPIView):
@@ -47,8 +86,9 @@ class ReviewsView(generics.ListCreateAPIView):
 class ReviewDetailsView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Review.objects.all()
     serializer_class = ReviewSerializer
-
-# ----------------------------------- Generic API View & mixins -----------------------------------
+# ------------------------------------------------------------------------------------------------
+# ----------------------------------- (2.2) Generic API View & mixins ----------------------------
+# ------------------------------------------------------------------------------------------------
 
 
 """
@@ -71,8 +111,9 @@ class ReviewDetailsView(generics.GenericAPIView, mixins.RetrieveModelMixin):
         return self.retrieve(request, *args, **kwargs)
 """
 
-
-# ----------------------------------- API View -----------------------------------
+# ------------------------------------------------------------------------------------------------
+# ---------------------------------------- (2.1) API View ----------------------------------------
+# ------------------------------------------------------------------------------------------------
 
 
 class MoviesView(APIView):
@@ -123,6 +164,7 @@ class MovieDetailsView(APIView):
         return Response(response_payload(successful=True, message='Movie successfully deleted!'))
 
 
+"""
 class StreamPlatformsView(APIView):
     def get(self, request):
         platforms = StreamPlatform.objects.all()
@@ -168,10 +210,12 @@ class StreamPlatformDetailsView(APIView):
 
         platform.delete()
         return Response(response_payload(successful=True, message='Platform successfully deleted!'))
-
+"""
 
 """
-# ----------------------------------- FUNCTION BASED VIEWS -----------------------------------
+# ------------------------------------------------------------------------------------------------
+# ----------------------------------- (1) FUNCTION BASED VIEWS -----------------------------------
+# ------------------------------------------------------------------------------------------------
 from django.http import JsonResponse
 from rest_framework import status
 from rest_framework.decorators import api_view
