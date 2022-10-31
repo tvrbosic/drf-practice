@@ -1,7 +1,6 @@
-from dataclasses import fields
 from rest_framework import serializers
 
-from .models import Movie, StreamPlatform, Review
+from .models import Movie, Review, StreamPlatform
 
 # ----------------------------------- Model Serializer -----------------------------------
 

@@ -1,6 +1,6 @@
-from django.db import models
 from django.contrib.auth.models import User
-from django.core.validators import MinValueValidator, MaxValueValidator
+from django.core.validators import MaxValueValidator, MinValueValidator
+from django.db import models
 
 # Create your models here.
 
@@ -19,6 +19,8 @@ class Movie(models.Model):
     description = models.CharField(max_length=200)
     active = models.BooleanField(default=True)
     created = models.DateTimeField(auto_now_add=True)
+    avg_rating = models.FloatField(default=0)
+    ratings_count = models.IntegerField(default=0)
     platform = models.ForeignKey(StreamPlatform, on_delete=models.CASCADE, related_name='movies')
 
     def __str__(self):

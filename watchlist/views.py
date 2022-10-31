@@ -7,19 +7,18 @@
 # - 2.4/ ViewSets
 # --------------------------------------------------------------------------------------------
 
-from django.shortcuts import get_object_or_404
-from rest_framework import status
-from rest_framework import generics
 # from rest_framework import mixins
-from rest_framework import viewsets
-from rest_framework.views import APIView
-from rest_framework.response import Response
+# from django.shortcuts import get_object_or_404
+from rest_framework import generics, status, viewsets
 from rest_framework.exceptions import ValidationError
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from rest_framework.views import APIView
 
 from .models import Movie, Review, StreamPlatform
-from .serializers import MovieSerializer, ReviewSerializer, StreamPlatformSerializer
 from .permissions import AdminOrReadOnly, ReviewUserOrReadOnly
+from .serializers import (MovieSerializer, ReviewSerializer,
+                          StreamPlatformSerializer)
 
 
 def response_payload(successful, data=None, message=None, errors=None):
@@ -74,7 +73,7 @@ class ReviewsView(generics.ListCreateAPIView):
     # Overwritten
     # queryset = Review.objects.all()
     serializer_class = ReviewSerializer
-    permission_classes = [AdminOrReadOnly]
+    permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
         # Fetch keyword argument pk from url
@@ -85,10 +84,19 @@ class ReviewsView(generics.ListCreateAPIView):
         pk = self.kwargs.get('pk')
         movie = Movie.objects.get(pk=pk)
 
+        # Check if user has already reviewed movie
         reviews_queryset = Review.objects.filter(movie=movie, reviewer=self.request.user)
         if reviews_queryset.exists():
             raise ValidationError('You have already reviewed this movie!')
 
+        # Update movie average rating and rating count
+        if movie.ratings_count == 0:
+            movie.avg_rating = serializer.validated_data['rating']
+        else:
+            movie.avg_rating = (movie.avg_rating + serializer.validated_data['rating'])/2
+        movie.ratings_count += 1
+
+        movie.save()
         serializer.save(movie=movie, reviewer=self.request.user)
 
 
