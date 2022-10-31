@@ -13,12 +13,14 @@ from rest_framework import generics, status, viewsets
 from rest_framework.exceptions import ValidationError
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from rest_framework.throttling import AnonRateThrottle, UserRateThrottle
 from rest_framework.views import APIView
 
 from .models import Movie, Review, StreamPlatform
-from .permissions import AdminOrReadOnly, ReviewUserOrReadOnly
+from .permissions import IsAdminOrReadOnly, IsReviewUserOrReadOnly
 from .serializers import (MovieSerializer, ReviewSerializer,
                           StreamPlatformSerializer)
+from .throttling import ReviewCreateThrottle
 
 
 def response_payload(successful, data=None, message=None, errors=None):
@@ -63,6 +65,8 @@ class StreamPlatformVS(viewsets.ViewSet):
 class StreamPlatformVS(viewsets.ModelViewSet):
     queryset = StreamPlatform.objects.all()
     serializer_class = StreamPlatformSerializer
+    permission_classes = [IsAdminOrReadOnly]
+
 
 # ------------------------------------------------------------------------------------------------
 # ----------------------------------- (2.3) Concrete API Views -----------------------------------
@@ -74,6 +78,9 @@ class ReviewsView(generics.ListCreateAPIView):
     # queryset = Review.objects.all()
     serializer_class = ReviewSerializer
     permission_classes = [IsAuthenticated]
+    # throttle_classes = [UserRateThrottle, AnonRateThrottle]
+    throttle_classes = [ReviewCreateThrottle]
+    # Or scoped throttle (use ScopedRateThrottle and define scope in settings)
 
     def get_queryset(self):
         # Fetch keyword argument pk from url
@@ -103,7 +110,8 @@ class ReviewsView(generics.ListCreateAPIView):
 class ReviewDetailsView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Review.objects.all()
     serializer_class = ReviewSerializer
-    permission_classes = [ReviewUserOrReadOnly]
+    permission_classes = [IsReviewUserOrReadOnly]
+    throttle_classes = [UserRateThrottle, AnonRateThrottle]
 
 
 # ------------------------------------------------------------------------------------------------
@@ -137,6 +145,9 @@ class ReviewDetailsView(generics.GenericAPIView, mixins.RetrieveModelMixin):
 
 
 class MoviesView(APIView):
+    permission_classes = [IsAdminOrReadOnly]
+    throttle_classes = [UserRateThrottle, AnonRateThrottle]
+
     def get(self, request):
         movies = Movie.objects.all()
         serializer = MovieSerializer(movies, many=True)
@@ -152,6 +163,8 @@ class MoviesView(APIView):
 
 
 class MovieDetailsView(APIView):
+    permission_classes = [IsAdminOrReadOnly]
+
     def get(self, request, pk):
         try:
             movie = Movie.objects.get(pk=pk)
